@@ -18,53 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#![allow(nonstandard_style)]
-#![no_std]
-
-use core::{cmp::PartialEq, ops::Not};
-use libc;
-
-include!(concat!(env!("OUT_DIR"), "/nvtt_bindings.rs"));
-
-impl PartialEq<bool> for NvttBoolean {
-    #[inline]
-    fn eq(&self, rhs: &bool) -> bool {
-        bool::from(*self) == *rhs
-    }
-}
-
-impl PartialEq<NvttBoolean> for bool {
-    #[inline]
-    fn eq(&self, rhs: &NvttBoolean) -> bool {
-        PartialEq::eq(rhs, self)
-    }
-}
-
-impl From<bool> for NvttBoolean {
-    #[inline]
-    fn from(b: bool) -> Self {
-        if b {
-            NvttBoolean::NVTT_True
-        } else {
-            NvttBoolean::NVTT_False
-        }
-    }
-}
-
-impl From<NvttBoolean> for bool {
-    #[inline]
-    fn from(b: NvttBoolean) -> Self {
-        b == NvttBoolean::NVTT_True
-    }
-}
-
-impl Not for NvttBoolean {
-    type Output = Self;
-    #[inline]
-    fn not(self) -> Self::Output {
-        match self {
-            NvttBoolean::NVTT_False => NvttBoolean::NVTT_True,
-            NvttBoolean::NVTT_True => NvttBoolean::NVTT_False,
-        }
-    }
-}
+#pragma once
+#include <stdbool.h>
+#include "./nvidia-texture-tools/src/nvtt/nvtt_wrapper.h"
