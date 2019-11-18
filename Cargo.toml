@@ -10,6 +10,9 @@ keywords = ["compression", "texture", "tools", "nvidia", "image"]
 edition = "2018"
 exclude = ["./example_data/*"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
