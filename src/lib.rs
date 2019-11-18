@@ -440,6 +440,11 @@ impl Compressor {
         thread_local! {
             static ERR: Cell<NvttError> = Cell::new(0);
             static OUT_DATA: RefCell<Vec<u8>> = RefCell::new(vec![]);
+            static HEIGHT: Cell<usize> = Cell::new(0);
+            static WIDTH: Cell<usize> = Cell::new(0);
+            static DEPTH: Cell<usize> = Cell::new(0);
+            static FACE: Cell<usize> = Cell::new(0);
+            static MIPLEVEL: Cell<usize> = Cell::new(0);
         }
 
         extern "C" fn err_callback(err: NvttError) {
@@ -462,12 +467,21 @@ impl Compressor {
                 size, width, height, depth, face, miplevel);
 
             OUT_DATA.with(|d| d.borrow_mut().reserve(size as _));
+
+            WIDTH.with(|w| w.set(width as _));
+            HEIGHT.with(|h| h.set(height as _));
+            DEPTH.with(|d| d.set(depth as _));
+            FACE.with(|f| f.set(face as _));
+            MIPLEVEL.with(|ml| ml.set(miplevel as _));
         }
 
         extern "C" fn output_callback(data_ptr: *const c_void, len: c_int) -> bool {
             let len = match usize::try_from(len) {
                 Ok(len) => len,
-                Err(_) => return false,
+                Err(_) => {
+                    error!("Could not append texture data: len {} is invalid", len);
+                    return false;
+                }
             };
 
             let data = unsafe { slice::from_raw_parts(data_ptr as *const u8, len) };
@@ -505,9 +519,14 @@ impl Compressor {
             Err(Error::try_from(err).unwrap_or(Error::Unknown))
         } else {
             if !output_options.write_to_file {
-                Ok(CompressionOutput::Data(
-                    OUT_DATA.with(|d| d.replace(vec![])),
-                ))
+                Ok(CompressionOutput::Memory {
+                    data: OUT_DATA.with(|d| d.replace(vec![])),
+                    width: WIDTH.with(|w| w.get()),
+                    height: HEIGHT.with(|h| h.get()),
+                    depth: DEPTH.with(|d| d.get()),
+                    face: FACE.with(|f| f.get()),
+                    miplevel: MIPLEVEL.with(|ml| ml.get()),
+                })
             } else {
                 Ok(CompressionOutput::File)
             }
@@ -545,32 +564,22 @@ impl Drop for Compressor {
 pub enum CompressionOutput {
     /// The texture was saved into the file specified on the `OutputOptions`.
     File,
-    /// The texture was saved into the given `Vec`.
-    Data(Vec<u8>),
-}
-
-impl CompressionOutput {
-    /// Get the compressed texture data if the image was compressed into memory,
-    /// or `None` if the texture was written to a file.
-    #[inline]
-    pub fn data(self) -> Option<Vec<u8>> {
-        match self {
-            Self::File => None,
-            Self::Data(data) => Some(data),
+    /// The texture was saved into memory.
+    Memory {
+        /// The bytes of the image.
+        data: Vec<u8>,
+        /// The width of the texture in pixels.
+        width: usize,
+        /// The height of the texture in pixels.
+        height: usize,
+        /// The depth of the texture.
+        depth: usize,
+        /// The face of the texture.
+        face: usize,
+        /// The mipmap level of the texture.
+        miplevel: usize,
         }
     }
-
-    /// Get the compressed texture data if the image was compressed into memory.
-    ///
-    /// # Panics
-    ///
-    /// This method will `panic` if `self` is equal to `CompressionOutput::File`.
-    #[inline]
-    pub fn unwrap_data(self) -> Vec<u8> {
-        self.data()
-            .expect("Could not get in-memory compression output.")
-    }
-}
 
 /// Object which stores the compression options for the texture.
 #[derive(Debug)]
