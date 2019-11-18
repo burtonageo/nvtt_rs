@@ -37,6 +37,22 @@ Only a limited number of image formats are supported, although this library can
 provide automatic conversions from a [`DynamicImage`]. See the [`ValidImage`]
 type for more information.
 
+## Dependencies
+
+### Linux/macOS
+
+This crate requires a valid cmake installation and a C++ compiler to build.
+
+### Windows
+
+This crate requires a valid installation of Visual Studio.
+
+## Notes
+
+This crate does not currently work on Microsoft Windows due to incomplete work
+on the build system.
+
+
 [wiki]: https://github.com/castano/nvidia-texture-tools/wiki/ApiDocumentation
 [`InputOptions::set_image`]: struct.InputOptions.html#method.set_image
 [`image`]: https://docs.rs/image/latest/image
