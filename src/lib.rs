@@ -578,8 +578,8 @@ pub enum CompressionOutput {
         face: usize,
         /// The mipmap level of the texture.
         miplevel: usize,
-        }
     }
+}
 
 /// Object which stores the compression options for the texture.
 #[derive(Debug)]
@@ -704,6 +704,7 @@ impl InputOptions {
         self
     }
 
+    /// If this parameter is set, then `nvtt` will convert the image into a normal map.
     #[inline]
     pub fn convert_to_normal_map(
         &mut self,
@@ -715,6 +716,10 @@ impl InputOptions {
         self
     }
 
+    /// Sets the `InputFormat` of the input data. This tells `nvtt` which pixel format
+    /// it should interpret the byte data passed in [`InputOptions::set_mipmap_data`] as.
+    ///
+    /// [`InputOptions::set_mipmap_data`]: struct.InputOptions.html#method.set_mipmap_data
     #[inline]
     pub fn set_format(&mut self, format: InputFormat) -> &mut Self {
         unsafe {
@@ -751,6 +756,10 @@ impl InputOptions {
         self
     }
 
+    /// Set the `MipmapFilter` on the `InputOptions`. See the [`MipmapFilter`]
+    /// type for more info.
+    ///
+    /// [`MipmapFilter`]: enum.MipmapFilter.html
     #[inline]
     pub fn set_mipmap_filter(&mut self, mipmap_filter: MipmapFilter) -> &mut Self {
         let opts_ptr = self.0.as_ptr();
@@ -772,6 +781,16 @@ impl InputOptions {
         self
     }
 
+    /// Sets the input data which should be compressed.
+    ///
+    /// The `data` is copied into the `InputOptions` object.
+    ///
+    /// # Errors
+    ///
+    /// If the dimensions of the image do not match the length of the `data`,
+    /// then this method will fail with [`Error::Unknown`].
+    ///
+    /// [`Error::Unknown`]: enum.Error.html#variant.Unknown
     #[inline]
     pub fn set_mipmap_data(
         &mut self,
