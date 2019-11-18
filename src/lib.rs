@@ -593,7 +593,7 @@ pub enum CompressionOutput {
         face: usize,
         /// The mipmap level of the texture.
         miplevel: usize,
-    }
+    },
 }
 
 /// Object which stores the compression options for the texture.
@@ -1130,42 +1130,48 @@ impl OutputOptions {
         &mut self,
         out_location: T,
     ) -> Result<&mut Self, PathConvertError> {
-        match out_location.into() {
-            OutputLocation::File(p) => {
-                #[inline(always)]
-                fn to_c_filepath(path: &Path) -> Result<CString, PathConvertError> {
-                    cfg_if! {
-                        if #[cfg(target_family = "windows")] {
-                            match path.to_str() {
-                                Some(s) => {
-                                    if !s.is_ascii() {
-                                        return Err(PathConvertError::AsciiConvert)
+        #[inline(never)]
+        fn inner(opts: &mut OutputOptions, loc: OutputLocation<'_>) -> Result<(), PathConvertError> {
+            match loc {
+                OutputLocation::File(p) => {
+                    #[inline(always)]
+                    fn to_c_filepath(path: &Path) -> Result<CString, PathConvertError> {
+                        cfg_if! {
+                            if #[cfg(target_family = "windows")] {
+                                match path.to_str() {
+                                    Some(s) => {
+                                        if !s.is_ascii() {
+                                            return Err(PathConvertError::AsciiConvert)
+                                        }
+                                        CString::new(s.as_bytes()).map_err(From::from)
                                     }
-                                    CString::new(s.as_bytes()).map_err(From::from)
+                                    None => Err(PathConvertError::Utf8Convert),
                                 }
-                                None => Err(PathConvertError::Utf8Convert),
+                            } else if #[cfg(target_family = "unix")] {
+                                use std::os::unix::ffi::OsStrExt;
+                                CString::new(path.as_os_str().as_bytes()).map_err(From::from)
+                            } else {
+                                compile_error!("This platform is unsupported");
                             }
-                        } else if #[cfg(target_family = "unix")] {
-                            use std::os::unix::ffi::OsStrExt;
-                            CString::new(path.as_os_str().as_bytes()).map_err(From::from)
-                        } else {
-                            compile_error!("This platform is unsupported");
                         }
                     }
-                }
 
-                let out_file = to_c_filepath(p)?;
-                unsafe {
-                    nvttSetOutputOptionsFileName(self.out_opts.as_ptr(), out_file.as_ptr());
+                    let out_file = to_c_filepath(p)?;
+                    unsafe {
+                        nvttSetOutputOptionsFileName(opts.out_opts.as_ptr(), out_file.as_ptr());
+                    }
+                    opts.write_to_file = true;
+                    Ok(())
                 }
-                self.write_to_file = true;
-                Ok(self)
-            }
-            OutputLocation::Buffer => {
-                self.write_to_file = false;
-                Ok(self)
+                OutputLocation::Buffer => {
+                    opts.write_to_file = false;
+                    Ok(())
+                }
             }
         }
+
+        inner(self, out_location.into())?;
+        Ok(self)
     }
 
     #[inline]
