@@ -5,9 +5,7 @@ with graphics APIs. See the [wiki] for more info.
 
 ## Example
 
-```no_run
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-# let (w, h) = (0, 0);
+```rust
 use nvtt_rs::{Compressor, CompressionOptions, Format, InputOptions, OutputOptions};
 
 let input_options = InputOptions::new()?;
@@ -20,9 +18,6 @@ compression_opts.set_format(Format::Dxt1);
 
 let mut compressor = Compressor::new()?;
 compressor.compress(&compression_opts, &input_options, &output_options)?;
-
-# Ok(())
-# }
 ```
 
 ## Features
