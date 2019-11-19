@@ -1112,8 +1112,8 @@ impl OutputOptions {
     /// // Set other texture options here...
     ///
     /// match compressor.compress(&compression_opts, &input_opts, &output_opts)? {
-    ///     CompressionOutput::Data(d) => {
-    ///         std::fs::write("OutFile.dds", &d[..])?;
+    ///     CompressionOutput::Memory { data, .. } => {
+    ///         std::fs::write("OutFile.dds", &data[..])?;
     ///     }
     ///     _ => {}
     /// };
