@@ -961,6 +961,7 @@ impl Drop for InputOptions {
 ///
 /// [`nvtt_image_integration`]: index.html#nvtt_image_integration
 #[cfg(feature = "nvtt_image_integration")]
+#[derive(Clone, Debug)]
 pub enum ValidImage<'a> {
     /// A bgra image with byte values for each subpixel.
     Bgra(MaybeOwned<'a, ImageBuffer<Bgra<u8>, Vec<u8>>>),
