@@ -10,11 +10,11 @@ keywords = ["compression", "texture", "tools", "nvidia", "image"]
 edition = "2018"
 build = "./build.rs"
 exclude = [
-    "./nvidia-texture-tools/data",
-    "./nvidia-texture-tools/project/vc8",
-    "./nvidia-texture-tools/project/vc9",
-    "./nvidia-texture-tools/project/vc10",
-    "./nvidia-texture-tools/project/vc12",
+    "/nvidia-texture-tools/data/**",
+    "/nvidia-texture-tools/project/vc8/**",
+    "/nvidia-texture-tools/project/vc9/**",
+    "/nvidia-texture-tools/project/vc10/**",
+    "/nvidia-texture-tools/project/vc12/**",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

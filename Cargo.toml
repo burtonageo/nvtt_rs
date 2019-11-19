@@ -8,7 +8,7 @@ repository = "https://github.com/burtonage/nvtt_rs"
 readme = "./Readme.md"
 keywords = ["compression", "texture", "tools", "nvidia", "image"]
 edition = "2018"
-exclude = ["./example_data/*"]
+exclude = ["/example_data/**"]
 
 [package.metadata.docs.rs]
 all-features = true
