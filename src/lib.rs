@@ -952,108 +952,106 @@ impl Drop for InputOptions {
     }
 }
 
-/// An enumeration of the valid image buffer types which can be
-/// used with nvtt.
-///
-/// # Notes
-///
-/// This type requires the [`nvtt_image_integration`] feature.
-///
-/// [`nvtt_image_integration`]: index.html#nvtt_image_integration
-#[cfg(feature = "nvtt_image_integration")]
-#[derive(Clone, Debug)]
-pub enum ValidImage<'a> {
-    /// A bgra image with byte values for each subpixel.
-    Bgra(MaybeOwned<'a, ImageBuffer<Bgra<u8>, Vec<u8>>>),
-    /// An rgba image with floats for each subpixel.
-    Rgba(MaybeOwned<'a, ImageBuffer<Rgba<f32>, Vec<f32>>>),
-    /// A luma image with floats for each subpixel.
-    Luma(MaybeOwned<'a, ImageBuffer<Luma<f32>, Vec<f32>>>),
-}
-
-#[cfg(feature = "nvtt_image_integration")]
-impl ValidImage<'_> {
-    /// Create a new `ValidImage` from `image`.
-    #[inline]
-    pub fn new<I: Into<Self>>(image: I) -> Self {
-        image.into()
-    }
-
-    #[inline]
-    fn format(&self) -> InputFormat {
-        match *self {
-            ValidImage::Bgra(_) => InputFormat::Bgra8Ub,
-            ValidImage::Rgba(_) => InputFormat::Rgba32F,
-            ValidImage::Luma(_) => InputFormat::R32F,
+cfg_if! {
+    if #[cfg(feature = "nvtt_image_integration")] {
+        /// An enumeration of the valid image buffer types which can be
+        /// used with nvtt.
+        ///
+        /// # Notes
+        ///
+        /// This type requires the [`nvtt_image_integration`] feature.
+        ///
+        /// [`nvtt_image_integration`]: index.html#nvtt_image_integration
+        #[derive(Clone, Debug)]
+        pub enum ValidImage<'a> {
+            /// A bgra image with byte values for each subpixel.
+            Bgra(MaybeOwned<'a, ImageBuffer<Bgra<u8>, Vec<u8>>>),
+            /// An rgba image with floats for each subpixel.
+            Rgba(MaybeOwned<'a, ImageBuffer<Rgba<f32>, Vec<f32>>>),
+            /// A luma image with floats for each subpixel.
+            Luma(MaybeOwned<'a, ImageBuffer<Luma<f32>, Vec<f32>>>),
         }
-    }
 
-    #[inline]
-    fn image_dimensions(&self) -> (u32, u32) {
-        match *self {
-            ValidImage::Bgra(ref i) => i.dimensions(),
-            ValidImage::Rgba(ref i) => i.dimensions(),
-            ValidImage::Luma(ref i) => i.dimensions(),
-        }
-    }
+        impl ValidImage<'_> {
+            /// Create a new `ValidImage` from `image`.
+            #[inline]
+            pub fn new<I: Into<Self>>(image: I) -> Self {
+                image.into()
+            }
 
-    #[inline]
-    fn data_bytes(&self) -> &[u8] {
-        match *self {
-            ValidImage::Bgra(ref i) => i.deref(),
-            ValidImage::Rgba(ref i) => transmute_to_bytes(i.deref()),
-            ValidImage::Luma(ref i) => transmute_to_bytes(i.deref()),
-        }
-    }
-}
-
-#[cfg(feature = "nvtt_image_integration")]
-impl From<DynamicImage> for ValidImage<'_> {
-    #[inline]
-    fn from(img: DynamicImage) -> Self {
-        ValidImage::Bgra(MaybeOwned::Owned(img.to_bgra()))
-    }
-}
-
-#[cfg(feature = "nvtt_image_integration")]
-impl From<&'_ DynamicImage> for ValidImage<'_> {
-    #[inline]
-    fn from(img: &'_ DynamicImage) -> Self {
-        ValidImage::Bgra(MaybeOwned::Owned(img.to_bgra()))
-    }
-}
-
-#[cfg(feature = "nvtt_image_integration")]
-macro_rules! impl_maybeowned_from {
-    ($( ($pix:ident, $subpix:ident) ),+ $(,)?) => {
-        $(
-            impl From<ImageBuffer<$pix<$subpix>, Vec<$subpix>>> for ValidImage<'_> {
-                #[inline]
-                fn from(buf: ImageBuffer<$pix<$subpix>, Vec<$subpix>>) -> Self {
-                    ValidImage:: $pix (MaybeOwned::from(buf))
+            #[inline]
+            fn format(&self) -> InputFormat {
+                match *self {
+                    ValidImage::Bgra(_) => InputFormat::Bgra8Ub,
+                    ValidImage::Rgba(_) => InputFormat::Rgba32F,
+                    ValidImage::Luma(_) => InputFormat::R32F,
                 }
             }
 
-            impl<'a> From<&'a ImageBuffer<$pix<$subpix>, Vec<$subpix>>> for ValidImage<'a> {
-                #[inline]
-                fn from(buf: &'a ImageBuffer<$pix<$subpix>, Vec<$subpix>>) -> Self {
-                    ValidImage:: $pix (MaybeOwned::from(buf))
+            #[inline]
+            fn image_dimensions(&self) -> (u32, u32) {
+                match *self {
+                    ValidImage::Bgra(ref i) => i.dimensions(),
+                    ValidImage::Rgba(ref i) => i.dimensions(),
+                    ValidImage::Luma(ref i) => i.dimensions(),
                 }
             }
 
-            impl<'a> From<MaybeOwned<'a, ImageBuffer<$pix<$subpix>, Vec<$subpix>>>> for ValidImage<'a> {
-                #[inline]
-                fn from(img: MaybeOwned<'a, ImageBuffer<$pix<$subpix>, Vec<$subpix>>>) -> Self {
-                    ValidImage::$pix(img)
+            #[inline]
+            fn data_bytes(&self) -> &[u8] {
+                match *self {
+                    ValidImage::Bgra(ref i) => i.deref(),
+                    ValidImage::Rgba(ref i) => transmute_to_bytes(i.deref()),
+                    ValidImage::Luma(ref i) => transmute_to_bytes(i.deref()),
                 }
             }
-        )*
-    };
-}
+        }
 
-#[cfg(feature = "nvtt_image_integration")]
-impl_maybeowned_from! {
-    (Bgra, u8), (Rgba, f32), (Luma, f32),
+        impl From<DynamicImage> for ValidImage<'_> {
+            #[inline]
+            fn from(img: DynamicImage) -> Self {
+                ValidImage::Bgra(MaybeOwned::Owned(img.to_bgra()))
+            }
+        }
+
+        impl From<&'_ DynamicImage> for ValidImage<'_> {
+            #[inline]
+            fn from(img: &'_ DynamicImage) -> Self {
+                ValidImage::Bgra(MaybeOwned::Owned(img.to_bgra()))
+            }
+        }
+
+        macro_rules! impl_maybeowned_from {
+            ($( ($pix:ident, $subpix:ident) ),+ $(,)?) => {
+                $(
+                    impl From<ImageBuffer<$pix<$subpix>, Vec<$subpix>>> for ValidImage<'_> {
+                        #[inline]
+                        fn from(buf: ImageBuffer<$pix<$subpix>, Vec<$subpix>>) -> Self {
+                            ValidImage:: $pix (MaybeOwned::from(buf))
+                        }
+                    }
+
+                    impl<'a> From<&'a ImageBuffer<$pix<$subpix>, Vec<$subpix>>> for ValidImage<'a> {
+                        #[inline]
+                        fn from(buf: &'a ImageBuffer<$pix<$subpix>, Vec<$subpix>>) -> Self {
+                            ValidImage:: $pix (MaybeOwned::from(buf))
+                        }
+                    }
+
+                    impl<'a> From<MaybeOwned<'a, ImageBuffer<$pix<$subpix>, Vec<$subpix>>>> for ValidImage<'a> {
+                        #[inline]
+                        fn from(img: MaybeOwned<'a, ImageBuffer<$pix<$subpix>, Vec<$subpix>>>) -> Self {
+                            ValidImage::$pix(img)
+                        }
+                    }
+                )*
+            };
+        }
+
+        impl_maybeowned_from! {
+            (Bgra, u8), (Rgba, f32), (Luma, f32),
+        }
+    }
 }
 
 /// Object which stores the output options for the texture.
