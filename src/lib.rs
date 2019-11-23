@@ -97,7 +97,7 @@ use std::{
     cmp::PartialEq,
     convert::TryFrom,
     error::Error as ErrorTrait,
-    ffi::{CStr, CString, NulError},
+    ffi::{CStr, CString, NulError, OsStr},
     fmt, mem,
     path::Path,
     ptr::NonNull,
@@ -186,12 +186,26 @@ decl_enum! {
     /// The container format used to store the texture data.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Container: NvttContainer {
-        /// Dds container.
+        /// Dds container. This is used to contain data compressed
+        /// in the `dxt` format.
         Dds = NvttContainer_NVTT_Container_DDS,
-        /// Dds10 container.
+        /// Dds10 container. This is used to contain data compressed
+        /// in the `dxt` format.
         Dds10 = NvttContainer_NVTT_Container_DDS10,
-        /// Ktx container.
+        /// Ktx container. This is used to contain data compressed
+        /// in the `etc` format.
         Ktx = NvttContainer_NVTT_Container_KTX,
+    }
+}
+
+impl Container {
+    /// Gets the file extension of files used for the container.
+    #[inline]
+    pub fn file_extension(&self) -> &OsStr {
+        match *self {
+            Self::Dds | Self::Dds10 => OsStr::new("dds"),
+            Self::Ktx => OsStr::new("ktx"),
+        }
     }
 }
 
@@ -275,7 +289,6 @@ impl Default for Quality {
 }
 
 decl_enum! {
-    #[repr(u8)]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Format: NvttFormat {
         Bc1 = NvttFormat_NVTT_Format_BC1,
@@ -308,21 +321,6 @@ decl_enum! {
         Pvr_4Bpp_Rgba = NvttFormat_NVTT_Format_PVR_4BPP_RGBA,
         Rgb = NvttFormat_NVTT_Format_RGB,
         Rgba = NvttFormat_NVTT_Format_RGBA,
-    }
-}
-
-impl Format {
-    #[inline]
-    pub fn file_extension(&self) -> Option<&Path> {
-        let in_range = |low: Format, high: Format| -> bool {
-            (low as u8..high as u8).contains(&(*self as u8))
-        };
-
-        match *self {
-            _ if in_range(Self::Dxt1, Self::Dxt5n) => Some(Path::new("dds")),
-            _ if in_range(Self::Pvr_2Bpp_Rgb, Self::Pvr_4Bpp_Rgba) => Some(Path::new("pvr")),
-            _ => None,
-        }
     }
 }
 
