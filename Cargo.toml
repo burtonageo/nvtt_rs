@@ -24,7 +24,7 @@ version = "0.4"
 default-features = false
 
 [dependencies.image]
-version = "0.22"
+version = "0.23"
 default-features = false
 optional = true
 
