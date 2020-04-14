@@ -27,7 +27,7 @@ default-features = false
 cfg-if = "0.1.9"
 
 [build-dependencies.bindgen]
-version = "0.51.0"
+version = "0.52.0"
 default-features = false
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
