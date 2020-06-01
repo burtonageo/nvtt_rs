@@ -83,7 +83,6 @@
 use cfg_if::cfg_if;
 #[cfg(feature = "nvtt_image_integration")]
 use image::{Bgra, DynamicImage, ImageBuffer, Luma, Rgba};
-use libc::{c_int, c_uint, c_void};
 use log::{error, trace};
 #[cfg(feature = "nvtt_image_integration")]
 use maybe_owned::MaybeOwned;
@@ -99,6 +98,7 @@ use std::{
     error::Error as ErrorTrait,
     ffi::{CStr, CString, NulError, OsStr},
     fmt, mem,
+    os::raw::{c_int, c_uint, c_void},
     path::Path,
     ptr::NonNull,
     slice, thread_local,

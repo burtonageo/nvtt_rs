@@ -17,7 +17,6 @@ all-features = true
 
 [dependencies]
 cfg-if = "0.1.10"
-libc = "0.2"
 
 [dependencies.log]
 version = "0.4"
