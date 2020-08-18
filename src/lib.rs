@@ -386,11 +386,18 @@ impl Default for RoundMode {
 }
 
 decl_enum! {
+    /// The type of the texture.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum TextureType: NvttTextureType {
+        /// The texture is a standard 2D image with a width and
+        /// a height.
         D2 = NvttTextureType_NVTT_TextureType_2D,
+        /// The texture is a cube texture comprised of 6 2D textures
+        /// for each face of the cube.
         Cube = NvttTextureType_NVTT_TextureType_Cube,
+        /// The texture is a 3D texture, with a width, height and depth.
         D3 = NvttTextureType_TextureType_3D,
+        /// The texture is an array of 2D textures.
         Array = NvttTextureType_TextureType_Array,
     }
 }
