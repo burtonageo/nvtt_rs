@@ -572,6 +572,9 @@ impl Drop for Compressor {
     }
 }
 
+// @SAFETY: A `Compressor` cannot be copied or unsafely mutated in a shared way.
+unsafe impl Send for Compressor {}
+
 /// Communicates the output of a compressed texture.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum CompressionOutput {
@@ -686,6 +689,9 @@ impl Drop for CompressionOptions {
         unsafe { nvttDestroyCompressionOptions(self.0.as_ptr()) }
     }
 }
+
+// @SAFETY: A `CompressionOptions` cannot be copied or unsafely mutated in a shared way.
+unsafe impl Send for CompressionOptions {}
 
 /// Object which stores the input options for the texture.
 #[derive(Debug)]
@@ -950,6 +956,9 @@ impl Drop for InputOptions {
     }
 }
 
+// @SAFETY: An `InputOptions` cannot be copied or unsafely mutated in a shared way.
+unsafe impl Send for InputOptions {}
+
 cfg_if! {
     if #[cfg(feature = "nvtt_image_integration")] {
         /// An enumeration of the valid image buffer types which can be
@@ -1202,6 +1211,9 @@ impl Drop for OutputOptions {
         unsafe { nvttDestroyOutputOptions(self.out_opts.as_ptr()) }
     }
 }
+
+// @SAFETY: An `OutputOptions` cannot be copied or unsafely mutated in a shared way.
+unsafe impl Send for OutputOptions {}
 
 /// This enum is used to define the output location of the compressed
 /// texture data.
