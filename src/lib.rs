@@ -210,10 +210,19 @@ impl Container {
 }
 
 decl_enum! {
+    /// Specifies how the alpha should be interpreted on the image.
+    ///
+    /// You can view [`wikipedia`] for more information about alpha blending.
+    ///
+    /// [`wikipedia`]: https://en.wikipedia.org/wiki/Alpha_compositing
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum AlphaMode: NvttAlphaMode {
+        /// The image does not contain any alpha information.
         None = NvttAlphaMode_NVTT_AlphaMode_None,
+        /// The image uses premultiplied alpha.
         Premultiplied = NvttAlphaMode_NVTT_AlphaMode_Premultiplied,
+        /// The image uses straight alpha, where the color channels represent
+        /// the straight color of the channel without transparency.
         Transparency = NvttAlphaMode_NVTT_AlphaMode_Transparency,
     }
 }
@@ -272,11 +281,19 @@ impl Default for MipmapFilter {
 }
 
 decl_enum! {
+    /// Specify the quality level of the compression output.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Quality: NvttQuality {
+        /// Produces the lowest quality level, but at the fastest speed.
         Fastest = NvttQuality_NVTT_Quality_Fastest,
+        /// Produces the highest quality compression output.
         Highest = NvttQuality_NVTT_Quality_Highest,
+        /// Provides a medium quality level, trading off between
+        /// processing time and output quality.
+        ///
+        /// This is the default quality.
         Normal = NvttQuality_NVTT_Quality_Normal,
+        /// Equivalent to `Quality::Highest`.
         Production = NvttQuality_NVTT_Quality_Production,
     }
 }
@@ -289,6 +306,7 @@ impl Default for Quality {
 }
 
 decl_enum! {
+    /// Specify the output format.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Format: NvttFormat {
         Bc1 = NvttFormat_NVTT_Format_BC1,
@@ -325,24 +343,37 @@ decl_enum! {
 }
 
 decl_enum! {
+    /// Specify the color format of the input image.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum InputFormat: NvttInputFormat {
+        /// 4 unsigned byte channels comprised of `blue`, `green`, `red` and `alpha`.
         Bgra8Ub = NvttInputFormat_NVTT_InputFormat_BGRA_8UB,
+        /// 4 16-bit float channels comprised of `red`, `green`, `blue` and `alpha`.
         Rgba16F = NvttInputFormat_NVTT_InputFormat_RGBA_16F,
+        /// 4 32-bit float channels comprised of `red`, `green`, `blue` and `alpha`.
         Rgba32F = NvttInputFormat_NVTT_InputFormat_RGBA_32F,
+        /// A single 32 bit floating point channel.
         R32F = NvttInputFormat_NVTT_InputFormat_R_32F,
     }
 }
 
 decl_enum! {
+    /// Controls how the image edge length is rounded when the image is compressed.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum RoundMode: NvttRoundMode {
+        /// The image size is not changed.
         None = NvttRoundMode_NVTT_RoundMode_None,
+        /// Round the size of each edge to the nearest multiple of four.
         ToNearestMultipleOfFour = NvttRoundMode_NVTT_RoundMode_ToNearestMultipleOfFour,
+        /// Round the size of each edge to the nearest power of two.
         ToNearestPowerOfTwo = NvttRoundMode_NVTT_RoundMode_ToNearestPowerOfTwo,
+        /// Round the size of each edge up to the next highest multiple of four.
         ToNextMultipleOfFour = NvttRoundMode_NVTT_RoundMode_ToNextMultipleOfFour,
+        /// Round the size of each edge up to the next highest power of two.
         ToNextPowerOfTwo = NvttRoundMode_NVTT_RoundMode_ToNextPowerOfTwo,
+        /// Round the size of each edge down to the next lowest multiple of four.
         ToPreviousMultipleOfFour = NvttRoundMode_NVTT_RoundMode_ToPreviousMultipleOfFour,
+        /// Round the size of each edge down to the next lowest power of two.
         ToPreviousPowerOfTwo = NvttRoundMode_NVTT_RoundMode_ToPreviousPowerOfTwo,
     }
 }
@@ -357,9 +388,9 @@ impl Default for RoundMode {
 decl_enum! {
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum TextureType: NvttTextureType {
-        _2D = NvttTextureType_NVTT_TextureType_2D,
+        D2 = NvttTextureType_NVTT_TextureType_2D,
         Cube = NvttTextureType_NVTT_TextureType_Cube,
-        _3D = NvttTextureType_TextureType_3D,
+        D3 = NvttTextureType_TextureType_3D,
         Array = NvttTextureType_TextureType_Array,
     }
 }
@@ -367,7 +398,7 @@ decl_enum! {
 impl Default for TextureType {
     #[inline]
     fn default() -> Self {
-        TextureType::_2D
+        TextureType::D2
     }
 }
 
@@ -715,6 +746,7 @@ impl InputOptions {
         ptr
     }
 
+    /// Set the `AlphaMode` on the `InputOptions`.
     #[inline]
     pub fn set_alpha_mode(&mut self, alpha_mode: AlphaMode) -> &mut Self {
         unsafe {
@@ -747,6 +779,7 @@ impl InputOptions {
         self
     }
 
+    /// Set the `input_gamma` and `output_gamma` on the `InputOptions`.
     #[inline]
     pub fn set_gamma(&mut self, input_gamma: f32, output_gamma: f32) -> &mut Self {
         unsafe {
@@ -865,7 +898,7 @@ impl InputOptions {
 
         self.reset()
             .set_format(image.format())
-            .set_texture_layout(TextureType::_2D, w as _, h as _, 1, 1)
+            .set_texture_layout(TextureType::D2, w as _, h as _, 1, 1)
             .set_mipmap_data(image.data_bytes(), w as _, h as _, 1, face, mipmap)?;
 
         Ok(self)
@@ -880,6 +913,8 @@ impl InputOptions {
         self
     }
 
+    /// Specify whether the image is a normal map. Normal maps may be compressed
+    /// differently to better preserve the normal information.
     #[inline]
     pub fn set_normal_map(&mut self, is_normal_map: impl Into<NvttBoolean>) -> &mut Self {
         unsafe {
@@ -910,6 +945,7 @@ impl InputOptions {
         self
     }
 
+    /// Set the `RoundMode` on the `InputOptions`.
     #[inline]
     pub fn set_round_mode(&mut self, round_mode: RoundMode) -> &mut Self {
         unsafe {
@@ -940,6 +976,7 @@ impl InputOptions {
         self
     }
 
+    /// Set the `WrapMode` on the `InputOptions`.
     #[inline]
     pub fn set_wrap_mode(&mut self, wrap_mode: WrapMode) -> &mut Self {
         unsafe {
