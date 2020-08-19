@@ -1181,7 +1181,10 @@ impl OutputOptions {
         out_location: T,
     ) -> Result<&mut Self, PathConvertError> {
         #[inline(never)]
-        fn inner(opts: &mut OutputOptions, loc: OutputLocation<'_>) -> Result<(), PathConvertError> {
+        fn inner(
+            opts: &mut OutputOptions,
+            loc: OutputLocation<'_>,
+        ) -> Result<(), PathConvertError> {
             match loc {
                 OutputLocation::File(p) => {
                     #[inline(always)]
