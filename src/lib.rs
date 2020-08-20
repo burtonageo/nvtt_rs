@@ -307,17 +307,37 @@ impl Default for Quality {
 
 decl_enum! {
     /// Specify the output format.
+    ///
+    /// You can see the [`Microsoft Documentation`] for more information about the `Bc` formats.
+    ///
+    /// [`Microsoft Documentation`]: https://docs.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Format: NvttFormat {
+        /// Use the `bc1` compression algorithm. This supports images with 3 rgb channels.
         Bc1 = NvttFormat_NVTT_Format_BC1,
+        /// Use the `bc1` with alpha compression algorithm. This supports images with 3 rgb channels, and 1 bit
+        /// for the alpha channel.
         Bc1a = NvttFormat_NVTT_Format_BC1a,
+        /// Use `bc2` compression, which supports rgb channels, and 4 bits of alpha.
         Bc2 = NvttFormat_NVTT_Format_BC2,
+        /// Use `bc3` compression, which supports rgb channels, and 8 bits of alpha.
         Bc3 = NvttFormat_NVTT_Format_BC3,
+        /// @TODO
         Bc3n = NvttFormat_NVTT_Format_BC3n,
+        /// @TODO
         Bc3_Rgbm = NvttFormat_NVTT_Format_BC3_RGBM,
+        /// Use `bc4` compression, which supports a single red channel using 8 bits.
         Bc4 = NvttFormat_NVTT_Format_BC4,
+        /// Use `bc5` compression, which supports two channels of 8 bits each.
         Bc5 = NvttFormat_NVTT_Format_BC5,
+        /// Use `bc6` compression, which supports HDR encoded textures. See the [MSDN] docs for more.
+        ///
+        /// [MSDN]: https://docs.microsoft.com/en-us/windows/win32/direct3d11/bc6h-format
         Bc6 = NvttFormat_NVTT_Format_BC6,
+        /// Use `bc7` compression, which supports high quality `Rgb` and `Rgba` textures. See the [MSDN]
+        /// docs for more.
+        ///
+        /// [MSDN]: https://docs.microsoft.com/en-us/windows/win32/direct3d11/bc7-format
         Bc7 = NvttFormat_NVTT_Format_BC7,
         Ctx1 = NvttFormat_NVTT_Format_CTX1,
         Dxt1 = NvttFormat_NVTT_Format_DXT1,
@@ -647,6 +667,9 @@ impl CompressionOptions {
         NonNull::new(opts).map(Self).ok_or(Error::Unknown)
     }
 
+    /// Returns the underlying `NvttCompressionOptions` pointer type. It is your
+    /// responsibility to call `nvttDestroyCompressionOptions` on this value to
+    /// clean up the `NvttCompressionOptions` resources.
     #[inline]
     pub fn into_raw(self) -> *mut NvttCompressionOptions {
         let ptr = self.0.as_ptr();
@@ -662,6 +685,7 @@ impl CompressionOptions {
         self
     }
 
+    /// Set the output format of the compressed image.
     #[inline]
     pub fn set_format(&mut self, format: Format) -> &mut Self {
         unsafe {
@@ -692,6 +716,7 @@ impl CompressionOptions {
         self
     }
 
+    /// Set the `Quality` of the output image.
     #[inline]
     pub fn set_quality(&mut self, quality: Quality) -> &mut Self {
         unsafe {
@@ -700,6 +725,13 @@ impl CompressionOptions {
         self
     }
 
+    /// Set quantization settings on the `CompressionOptions`.
+    ///
+    /// * If `color_dithering` is `true`, then dithering will be applied to the color channel.
+    /// * If `alpha_dithering` is `true`, then dithering will be applied to the alpha channel.
+    /// * If `binary_alpha` is `true`, Then only one bit will be used to encode alpha information.
+    /// * `alpha_threshold` is used to determine if a pixel's alpha channel is high enough to be
+    ///   transparent. This parameter is ignored if `binary_alpha` is set to false.
     #[inline]
     pub fn set_quanitzation(
         &mut self,
@@ -938,6 +970,7 @@ impl InputOptions {
         self
     }
 
+    /// Set the `NormalMapFilter` params on the `InputOptions`.
     pub fn set_normal_filter(&mut self, filter: NormalMapFilter) -> &mut Self {
         unsafe {
             nvttSetInputOptionsNormalFilter(
@@ -961,6 +994,7 @@ impl InputOptions {
         self
     }
 
+    /// Sets the layout of the texture on the `InputOptions`.
     #[inline]
     pub fn set_texture_layout(
         &mut self,
@@ -1235,6 +1269,9 @@ impl OutputOptions {
         self
     }
 
+    /// If `write_srgb` is set to true, then the output image will be in the [sRGB] colorspace.
+    ///
+    /// [sRGB]: https://en.wikipedia.org/wiki/SRGB
     #[inline]
     pub fn set_srgb_flag<B: Into<NvttBoolean>>(&mut self, write_srgb: B) -> &mut Self {
         unsafe {
@@ -1243,6 +1280,7 @@ impl OutputOptions {
         self
     }
 
+    /// Set the `Container` type of the output image.
     #[inline]
     pub fn set_container(&mut self, container: Container) -> &mut Self {
         unsafe {
