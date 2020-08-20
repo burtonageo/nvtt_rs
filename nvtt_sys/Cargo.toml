@@ -24,14 +24,14 @@ version = "0.2"
 default-features = false
 
 [build-dependencies]
-cfg-if = "0.1.9"
+cfg-if = "0.1.10"
 
 [build-dependencies.bindgen]
 version = "0.54.0"
 default-features = false
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
-semver = "0.9"
+semver = "0.10"
 vswhere = "0.1"
 
 [target.'cfg(not(target_os = "windows"))'.build-dependencies]
