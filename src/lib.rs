@@ -458,6 +458,120 @@ impl NormalMapFilter {
     }
 }
 
+/// Describes the layout of the input texture data.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum TextureLayout {
+    /// The texture is a standard 2D image with a width and
+    /// a height.
+    D2 {
+        /// The with of the texture in pixels.
+        width: usize,
+        /// The height of the texture in pixels.
+        height: usize,
+    },
+    /// The texture is a 3D texture, with a width, height and depth.
+    D3 {
+        /// The with of the texture in pixels.
+        width: usize,
+        /// The height of the texture in pixels.
+        height: usize,
+        /// The depth of the texture in pixels.
+        depth: usize,
+    },
+    /// The texture is an array of 2D textures.
+    Array {
+        /// The width of each texture in pixels.
+        width: usize,
+        /// The height of each texture in pixels.
+        height: usize,
+        /// The total number of textures in the array.
+        array_length: usize,
+    },
+    /// The texture is a cube texture comprised of 6 2D textures
+    /// for each face of the cube.
+    Cube {
+        /// The width of each face of the cube texture in pixels.
+        face_width: usize,
+        /// The height of each face of the cube texture in pixels.
+        face_height: usize,
+    },
+}
+
+impl TextureLayout {
+    /// Get the `TextureType` corresponding to this `TextureLayout`.
+    #[inline]
+    pub fn texture_type(&self) -> TextureType {
+        match *self {
+            Self::D2 { .. } => TextureType::D2,
+            Self::D3 { .. } => TextureType::D3,
+            Self::Array { .. } => TextureType::Array,
+            Self::Cube { .. } => TextureType::Cube,
+        }
+    }
+
+    /// Get the `TextureDimensions` of this `TextureLayout`. Used
+    /// internally.
+    #[inline]
+    fn dimensions(&self) -> TextureDimensions {
+        match *self {
+            Self::D2 { width, height } => TextureDimensions {
+                width: width as c_int,
+                height: height as c_int,
+                ..Default::default()
+            },
+            Self::D3 {
+                width,
+                height,
+                depth,
+            } => TextureDimensions {
+                width: width as c_int,
+                height: height as c_int,
+                depth: depth as c_int,
+                ..Default::default()
+            },
+            Self::Array {
+                width,
+                height,
+                array_length,
+            } => TextureDimensions {
+                width: width as c_int,
+                height: height as c_int,
+                array_length: array_length as c_int,
+                ..Default::default()
+            },
+            Self::Cube {
+                face_width,
+                face_height,
+            } => TextureDimensions {
+                width: face_width as c_int,
+                height: face_height as c_int,
+                ..Default::default()
+            },
+        }
+    }
+}
+
+/// Describes the dimensions of an input texture. Unused parameters
+/// are set to `1`.
+struct TextureDimensions {
+    width: c_int,
+    height: c_int,
+    depth: c_int,
+    array_length: c_int,
+}
+
+impl Default for TextureDimensions {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            width: 1,
+            height: 1,
+            depth: 1,
+            array_length: 1,
+        }
+    }
+}
+
 /// The `Compressor` is used to perform the texture compression.
 #[derive(Debug)]
 pub struct Compressor(NonNull<NvttCompressor>);
@@ -935,9 +1049,14 @@ impl InputOptions {
         let image = image.into();
         let (w, h) = image.image_dimensions();
 
+        let image_layout = TextureLayout::D2 {
+            width: w as _,
+            height: h as _,
+        };
+
         self.reset()
             .set_format(image.format())
-            .set_texture_layout(TextureType::D2, w as _, h as _, 1, 1)
+            .set_texture_layout(image_layout)
             .set_mipmap_data(image.data_bytes(), w as _, h as _, 1, face, mipmap)?;
 
         Ok(self)
@@ -998,22 +1117,22 @@ impl InputOptions {
     #[inline]
     pub fn set_texture_layout(
         &mut self,
-        texture_type: TextureType,
-        w: c_int,
-        h: c_int,
-        d: c_int,
-        array_size: c_int,
+        texture_layout: TextureLayout,
     ) -> &mut Self {
+        let tex_type = texture_layout.texture_type();
+        let tex_dims = texture_layout.dimensions();
+
         unsafe {
             nvttSetInputOptionsTextureLayout(
                 self.0.as_ptr(),
-                texture_type.into(),
-                w,
-                h,
-                d,
-                array_size,
+                tex_type.into(),
+                tex_dims.width,
+                tex_dims.height,
+                tex_dims.depth,
+                tex_dims.array_length,
             )
         }
+
         self
     }
 
@@ -1261,6 +1380,7 @@ impl OutputOptions {
         Ok(self)
     }
 
+    ///
     #[inline]
     pub fn set_write_header<B: Into<NvttBoolean>>(&mut self, write_header: B) -> &mut Self {
         unsafe {
@@ -1356,8 +1476,7 @@ impl fmt::Display for Error {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = unsafe { CStr::from_ptr(nvttErrorString(self.into())) };
-        f.write_str(&s.to_string_lossy())?;
-        Ok(())
+        f.write_str(&s.to_string_lossy())
     }
 }
 
