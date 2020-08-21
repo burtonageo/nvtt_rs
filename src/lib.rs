@@ -1458,7 +1458,8 @@ impl OutputOptions {
         Ok(self)
     }
 
-    ///
+    /// If set to `true`, then the `OutputOptions` will write texture metadata into a
+    /// header section of the file.
     #[inline]
     pub fn set_write_header<B: Into<NvttBoolean>>(&mut self, write_header: B) -> &mut Self {
         unsafe {
