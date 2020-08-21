@@ -1497,6 +1497,7 @@ impl Drop for OutputOptions {
 
 // @SAFETY: An `OutputOptions` cannot be copied or unsafely mutated in a shared way.
 unsafe impl Send for OutputOptions {}
+unsafe impl Sync for OutputOptions {}
 
 /// This enum is used to define the output location of the compressed
 /// texture data.
