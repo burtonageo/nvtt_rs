@@ -937,6 +937,7 @@ impl Drop for CompressionOptions {
 
 // @SAFETY: A `CompressionOptions` cannot be copied or unsafely mutated in a shared way.
 unsafe impl Send for CompressionOptions {}
+unsafe impl Sync for CompressionOptions {}
 
 /// Object which stores the input options for the texture. This provides a
 /// safer interface for the [`NvttInputOptions`] type.
@@ -1216,6 +1217,7 @@ impl Drop for InputOptions {
 
 // @SAFETY: An `InputOptions` cannot be copied or unsafely mutated in a shared way.
 unsafe impl Send for InputOptions {}
+unsafe impl Sync for InputOptions {}
 
 cfg_if! {
     if #[cfg(feature = "nvtt_image_integration")] {
