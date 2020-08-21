@@ -1343,11 +1343,12 @@ impl OutputOptions {
     #[inline]
     pub fn new() -> Result<Self, Error> {
         let opts = unsafe { nvttCreateOutputOptions() };
-        let out_opts = NonNull::new(opts).ok_or(Error::Unknown)?;
-        Ok(OutputOptions {
-            out_opts,
-            write_to_file: true,
-        })
+        NonNull::new(opts)
+            .ok_or(Error::Unknown)
+            .map(|out_opts| OutputOptions {
+                out_opts,
+                write_to_file: false,
+            })
     }
 
     /// Returns the underlying [`NvttOutputOptions`] pointer type. It is your responsibility
@@ -1454,8 +1455,7 @@ impl OutputOptions {
             }
         }
 
-        inner(self, out_location.into())?;
-        Ok(self)
+        inner(self, out_location.into()).map(|_| self)
     }
 
     /// If set to `true`, then the `OutputOptions` will write texture metadata into a
