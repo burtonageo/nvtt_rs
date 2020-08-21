@@ -688,8 +688,8 @@ impl Compressor {
 
         extern "C" fn err_callback(err: NvttError) {
             error!(
-                "nvtt: Encountered an error while compressing: {}",
-                Error::try_from(err).unwrap_or(Error::Unknown)
+                "nvtt: Encountered an error while compressing\nCaused by: {err}",
+                err = Error::try_from(err).unwrap_or(Error::Unknown)
             );
             ERR.with(|e| e.set(err));
         }
@@ -702,11 +702,12 @@ impl Compressor {
             face: c_int,
             miplevel: c_int,
         ) {
-            trace!("Beginning texture compression with image size {} ({} x {} x {}), face = {}, mip = {}",
-                size, width, height, depth, face, miplevel);
+            trace!("Beginning texture compression with image size {sz} ({w} x {h} x {d}), face = {fc}, mip = {mp}",
+                sz = size, w = width, h = height, d = depth, fc = face, mp = miplevel);
 
             OUT_DATA.with(|d| d.borrow_mut().reserve(size as _));
 
+            ERR.with(|e| e.set(0));
             WIDTH.with(|w| w.set(width as _));
             HEIGHT.with(|h| h.set(height as _));
             DEPTH.with(|d| d.set(depth as _));
@@ -717,8 +718,12 @@ impl Compressor {
         extern "C" fn output_callback(data_ptr: *const c_void, len: c_int) -> bool {
             let len = match usize::try_from(len) {
                 Ok(len) => len,
-                Err(_) => {
-                    error!("Could not append texture data: len {} is invalid", len);
+                Err(err) => {
+                    error!(
+                        "Could not append texture data: len {l} is invalid\nCaused by: {e}",
+                        l = len,
+                        e = err
+                    );
                     return false;
                 }
             };
