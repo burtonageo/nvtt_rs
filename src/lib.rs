@@ -503,6 +503,50 @@ pub enum TextureLayout {
 }
 
 impl TextureLayout {
+    /// Construct a new [`TextureLayout::D2`] from the given `width` and `height`.
+    ///
+    /// [`TextureLayout::D2`]: ./enum.TextureLayout.html#variant.D2
+    #[inline]
+    pub const fn d2(width: usize, height: usize) -> Self {
+        Self::D2 { width, height }
+    }
+
+    /// Construct a new [`TextureLayout::D3`] from the given `width`, `height` and `depth`.
+    ///
+    /// [`TextureLayout::D3`]: ./enum.TextureLayout.html#variant.D3
+    #[inline]
+    pub const fn d3(width: usize, height: usize, depth: usize) -> Self {
+        Self::D3 {
+            width,
+            height,
+            depth,
+        }
+    }
+
+    /// Construct a new [`TextureLayout::Array`] from the given `width`, `height` and
+    /// `array_length`.
+    ///
+    /// [`TextureLayout::Array`]: ./enum.TextureLayout.html#variant.Array
+    #[inline]
+    pub const fn array(width: usize, height: usize, array_length: usize) -> Self {
+        Self::Array {
+            width,
+            height,
+            array_length,
+        }
+    }
+
+    /// Construct a new [`TextureLayout::Cube`] from the given `face_width` and `face_height`.
+    ///
+    /// [`TextureLayout::Cube`]: ./enum.TextureLayout.html#variant.Cube
+    #[inline]
+    pub const fn cube(face_width: usize, face_height: usize) -> Self {
+        Self::Cube {
+            face_width,
+            face_height,
+        }
+    }
+
     /// Get the `TextureType` corresponding to this `TextureLayout`.
     #[inline]
     pub fn texture_type(&self) -> TextureType {
@@ -1073,11 +1117,7 @@ impl InputOptions {
     ) -> Result<&mut Self, Error> {
         let image = image.into();
         let (w, h) = image.image_dimensions();
-
-        let image_layout = TextureLayout::D2 {
-            width: w as _,
-            height: h as _,
-        };
+        let image_layout = TextureLayout::d2(w as _, h as _);
 
         self.reset()
             .set_format(image.format())
