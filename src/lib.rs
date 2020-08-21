@@ -430,10 +430,14 @@ impl Default for TextureType {
 }
 
 decl_enum! {
+    /// Specify how the image should wrap if image boundaries are modified.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum WrapMode: NvttWrapMode {
+        /// Clamp the image edge to a single color.
         Clamp = NvttWrapMode_NVTT_WrapMode_Clamp,
+        /// Mirror the texture from the edge of the image.
         Mirror = NvttWrapMode_NVTT_WrapMode_Mirror,
+        /// Repeat the image.
         Repeat = NvttWrapMode_NVTT_WrapMode_Repeat,
     }
 }
@@ -447,6 +451,7 @@ pub struct NormalMapFilter {
 }
 
 impl NormalMapFilter {
+    /// Construct a new `NormalMapFilter` with the given parameters.
     #[inline]
     pub const fn new(small: f32, medium: f32, big: f32, large: f32) -> Self {
         Self {
@@ -572,7 +577,10 @@ impl Default for TextureDimensions {
     }
 }
 
-/// The `Compressor` is used to perform the texture compression.
+/// The `Compressor` is used to perform the texture compression. This provides a
+/// safer interface for the [`NvttCompressor`] type.
+///
+/// [`NvttCompressor`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttCompressor.html
 #[derive(Debug)]
 pub struct Compressor(NonNull<NvttCompressor>);
 
@@ -585,9 +593,12 @@ impl Compressor {
         NonNull::new(compressor).map(Self).ok_or(Error::Unknown)
     }
 
-    /// Returns the underlying `NvttCompressor` pointer type. It is your responsibility
-    /// to call `nvttDestroyCompressor` on this value to clean up the `NvttCompressor`
+    /// Returns the underlying [`NvttCompressor`] pointer type. It is your responsibility
+    /// to call [`nvttDestroyCompressor`] on this value to clean up the [`NvttCompressor`]
     /// resources.
+    ///
+    /// [`nvttDestroyCompressor`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/fn.nvttDestroyCompressionOptions.html
+    /// [`NvttCompressor`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttCompressor.html
     #[inline]
     pub fn into_raw(self) -> *mut NvttCompressor {
         let ptr = self.0.as_ptr();
@@ -745,6 +756,7 @@ impl Drop for Compressor {
 }
 
 // @SAFETY: A `Compressor` cannot be copied or unsafely mutated in a shared way.
+// @NOTE: Not `Sync` because `Compressor::compress` could otherwise thrash thread local vars.
 unsafe impl Send for Compressor {}
 
 /// Communicates the output of a compressed texture.
@@ -769,7 +781,10 @@ pub enum CompressionOutput {
     },
 }
 
-/// Object which stores the compression options for the texture.
+/// Object which stores the compression options for the texture. This provides a
+/// safer interface for the [`NvttCompressionOptions`] type.
+///
+/// [`NvttCompressionOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttCompressionOptions.html
 #[derive(Debug)]
 pub struct CompressionOptions(NonNull<NvttCompressionOptions>);
 
@@ -781,9 +796,12 @@ impl CompressionOptions {
         NonNull::new(opts).map(Self).ok_or(Error::Unknown)
     }
 
-    /// Returns the underlying `NvttCompressionOptions` pointer type. It is your
-    /// responsibility to call `nvttDestroyCompressionOptions` on this value to
-    /// clean up the `NvttCompressionOptions` resources.
+    /// Returns the underlying [`NvttCompressionOptions`] pointer type. It is your
+    /// responsibility to call [`nvttDestroyCompressionOptions`] on this value to
+    /// clean up the [`NvttCompressionOptions`] resources.
+    ///
+    /// [`nvttDestroyCompressionOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/fn.nvttDestroyCompressionOptions.html
+    /// [`NvttCompressionOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttCompressionOptions.html
     #[inline]
     pub fn into_raw(self) -> *mut NvttCompressionOptions {
         let ptr = self.0.as_ptr();
@@ -877,7 +895,10 @@ impl Drop for CompressionOptions {
 // @SAFETY: A `CompressionOptions` cannot be copied or unsafely mutated in a shared way.
 unsafe impl Send for CompressionOptions {}
 
-/// Object which stores the input options for the texture.
+/// Object which stores the input options for the texture. This provides a
+/// safer interface for the [`NvttInputOptions`] type.
+///
+/// [`NvttInputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttInputOptions.html
 #[derive(Debug)]
 pub struct InputOptions(NonNull<NvttInputOptions>);
 
@@ -889,9 +910,12 @@ impl InputOptions {
         NonNull::new(opts).map(Self).ok_or(Error::Unknown)
     }
 
-    /// Returns the underlying `NvttInputOptions` pointer type. It is your responsibility
-    /// to call `nvttDestroyInputOptions` on this value to clean up the `NvttInputOptions`
+    /// Returns the underlying [`NvttInputOptions`] pointer type. It is your responsibility
+    /// to call [`nvttDestroyInputOptions`] on this value to clean up the [`NvttInputOptions`]
     /// resources.
+    ///
+    /// [`nvttDestroyInputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/fn.nvttDestroyInputOptions.html
+    /// [`NvttInputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttInputOptions.html
     #[inline]
     pub fn into_raw(self) -> *mut NvttInputOptions {
         let ptr = self.0.as_ptr();
@@ -1035,7 +1059,8 @@ impl InputOptions {
     ///
     /// # Notes
     ///
-    /// This method requires the [`nvtt_image_integration`] feature.
+    /// * This method requires the [`nvtt_image_integration`] feature.
+    /// * This method clears any previous state set on the `InputOptions`.
     ///
     /// [`nvtt_image_integration`]: index.html#nvtt_image_integration
     #[cfg(feature = "nvtt_image_integration")]
@@ -1115,10 +1140,7 @@ impl InputOptions {
 
     /// Sets the layout of the texture on the `InputOptions`.
     #[inline]
-    pub fn set_texture_layout(
-        &mut self,
-        texture_layout: TextureLayout,
-    ) -> &mut Self {
+    pub fn set_texture_layout(&mut self, texture_layout: TextureLayout) -> &mut Self {
         let tex_type = texture_layout.texture_type();
         let tex_dims = texture_layout.dimensions();
 
@@ -1258,10 +1280,15 @@ cfg_if! {
     }
 }
 
-/// Object which stores the output options for the texture.
+/// Object which stores the output options for the texture. This provides a
+/// safer interface for the [`NvttOutputOptions`] type.
+///
+/// [`NvttOutputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttOutputOptions.html
 #[derive(Debug)]
 pub struct OutputOptions {
     out_opts: NonNull<NvttOutputOptions>,
+    /// If this is `true`, then the `OutputOptions` will use nvtt's native file output
+    /// system rather than using the callbacks.
     write_to_file: bool,
 }
 
@@ -1277,9 +1304,12 @@ impl OutputOptions {
         })
     }
 
-    /// Returns the underlying `NvttOutputOptions` pointer type. It is your responsibility
-    /// to call `nvttDestroyOutputOptions` on this value to clean up the `NvttOutputOptions`
+    /// Returns the underlying [`NvttOutputOptions`] pointer type. It is your responsibility
+    /// to call [`nvttDestroyOutputOptions`] on this value to clean up the [`NvttOutputOptions`]
     /// resources.
+    ///
+    /// [`nvttDestroyOutputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/fn.nvttDestroyOutputOptions.html
+    /// [`NvttOutputOptions`]: https://docs.rs/nvtt_sys/latest/nvtt_sys/struct.NvttOutputOptions.html
     #[inline]
     pub fn into_raw(self) -> *mut NvttOutputOptions {
         let ptr = self.out_opts.as_ptr();
@@ -1296,6 +1326,8 @@ impl OutputOptions {
     /// non-ASCII filenames, you will need to pass [`OutputLocation::Buffer`],
     /// and then write the data into the file using another method. An example of
     /// to do this is shown below.
+    ///
+    /// The `OutputOptions` will write to a buffer unless specified otherwise.
     ///
     /// ## Example
     ///
