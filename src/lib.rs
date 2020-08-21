@@ -92,6 +92,7 @@ use safe_transmute::transmute_to_bytes;
 #[cfg(feature = "nvtt_image_integration")]
 use std::ops::Deref;
 use std::{
+    any::type_name,
     cell::{Cell, RefCell},
     cmp::PartialEq,
     convert::TryFrom,
@@ -148,7 +149,7 @@ macro_rules! decl_enum {
         }
 
         impl TryFrom<$raw> for $enum_name {
-            type Error = ();
+            type Error = EnumConvertError;
 
             // NvttFormat contains overlapping enum instances, so only the first
             // value declared will be returned.
@@ -159,7 +160,7 @@ macro_rules! decl_enum {
                     $(
                         $sys_nm => { Ok($enum_name::$rust_nm) }
                     )*
-                    _ => Err(())
+                    _ => Err(EnumConvertError::new::<$enum_name>(raw))
                 }
             }
         }
@@ -1601,3 +1602,44 @@ impl From<NulError> for PathConvertError {
         PathConvertError::Nul(e)
     }
 }
+
+/// An error type which may be generated when converting a raw enum value
+/// into a rust native enum using the [`TryFrom`] trait.
+///
+/// [`TryFrom`]: https://doc.rust-lang.org/stable/std/convert/trait.TryFrom.html
+#[derive(Debug)]
+pub struct EnumConvertError {
+    value: u32,
+    enum_name: &'static str,
+}
+
+impl EnumConvertError {
+    /// Create a new `EnumConvertError`.
+    #[inline]
+    fn new<T>(value: u32) -> Self {
+        Self {
+            value,
+            enum_name: type_name::<T>(),
+        }
+    }
+
+    /// Returns the erroneous numeric value.
+    #[inline]
+    pub const fn value(&self) -> u32 {
+        self.value
+    }
+}
+
+impl fmt::Display for EnumConvertError {
+    #[inline]
+    fn fmt(&self, fmtr: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            fmtr,
+            "Could not convert value {val} into a type of {enum_nm}",
+            val = self.value,
+            enum_nm = self.enum_name
+        )
+    }
+}
+
+impl ErrorTrait for EnumConvertError {}
