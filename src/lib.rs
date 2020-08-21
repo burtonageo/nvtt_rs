@@ -78,8 +78,6 @@
 //! [`DynamicImage`]: https://docs.rs/image/latest/image/enum.DynamicImage.html
 //! [`ValidImage`]: enum.ValidImage.html
 
-#![allow(nonstandard_style)]
-
 use cfg_if::cfg_if;
 #[cfg(feature = "nvtt_image_integration")]
 use image::{Bgra, DynamicImage, ImageBuffer, Luma, Rgba};
@@ -153,7 +151,7 @@ macro_rules! decl_enum {
 
             // NvttFormat contains overlapping enum instances, so only the first
             // value declared will be returned.
-            #[allow(unreachable_patterns)]
+            #[allow(nonstandard_style, unreachable_patterns)]
             #[inline]
             fn try_from(raw: $raw) -> Result<Self, Self::Error> {
                 match raw {
@@ -326,7 +324,7 @@ decl_enum! {
         /// @TODO
         Bc3n = NvttFormat_NVTT_Format_BC3n,
         /// @TODO
-        Bc3_Rgbm = NvttFormat_NVTT_Format_BC3_RGBM,
+        Bc3Rgbm = NvttFormat_NVTT_Format_BC3_RGBM,
         /// Use `bc4` compression, which supports a single red channel using 8 bits.
         Bc4 = NvttFormat_NVTT_Format_BC4,
         /// Use `bc5` compression, which supports two channels of 8 bits each.
@@ -348,16 +346,16 @@ decl_enum! {
         Dxt5 = NvttFormat_NVTT_Format_DXT5,
         Dxt5n = NvttFormat_NVTT_Format_DXT5n,
         Etc1 = NvttFormat_NVTT_Format_ETC1,
-        Etc2_R = NvttFormat_NVTT_Format_ETC2_R,
-        Etc2_Rg = NvttFormat_NVTT_Format_ETC2_RG,
-        Etc2_Rgb = NvttFormat_NVTT_Format_ETC2_RGB,
-        Etc2_Rgba = NvttFormat_NVTT_Format_ETC2_RGBA,
-        Etc2_Rgbm = NvttFormat_NVTT_Format_ETC2_RGBM,
-        Etc2_Rgb_A1 = NvttFormat_NVTT_Format_ETC2_RGB_A1,
-        Pvr_2Bpp_Rgb = NvttFormat_NVTT_Format_PVR_2BPP_RGB,
-        Pvr_2Bpp_Rgba = NvttFormat_NVTT_Format_PVR_2BPP_RGBA,
-        Pvr_4Bpp_Rgb = NvttFormat_NVTT_Format_PVR_4BPP_RGB,
-        Pvr_4Bpp_Rgba = NvttFormat_NVTT_Format_PVR_4BPP_RGBA,
+        Etc2R = NvttFormat_NVTT_Format_ETC2_R,
+        Etc2Rg = NvttFormat_NVTT_Format_ETC2_RG,
+        Etc2Rgb = NvttFormat_NVTT_Format_ETC2_RGB,
+        Etc2Rgba = NvttFormat_NVTT_Format_ETC2_RGBA,
+        Etc2Rgbm = NvttFormat_NVTT_Format_ETC2_RGBM,
+        Etc2RgbA1 = NvttFormat_NVTT_Format_ETC2_RGB_A1,
+        Pvr2BppRgb = NvttFormat_NVTT_Format_PVR_2BPP_RGB,
+        Pvr2BppRgba = NvttFormat_NVTT_Format_PVR_2BPP_RGBA,
+        Pvr4BppRgb = NvttFormat_NVTT_Format_PVR_4BPP_RGB,
+        Pvr4BppRgba = NvttFormat_NVTT_Format_PVR_4BPP_RGBA,
         Rgb = NvttFormat_NVTT_Format_RGB,
         Rgba = NvttFormat_NVTT_Format_RGBA,
     }
