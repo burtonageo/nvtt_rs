@@ -79,16 +79,8 @@
 //! [`ValidImage`]: enum.ValidImage.html
 
 use cfg_if::cfg_if;
-#[cfg(feature = "nvtt_image_integration")]
-use image::{Bgra, DynamicImage, ImageBuffer, Luma, Rgba};
 use log::{error, trace};
-#[cfg(feature = "nvtt_image_integration")]
-use maybe_owned::MaybeOwned;
 use nvtt_sys::*;
-#[cfg(feature = "nvtt_image_integration")]
-use safe_transmute::transmute_to_bytes;
-#[cfg(feature = "nvtt_image_integration")]
-use std::ops::Deref;
 use std::{
     any::type_name,
     cell::{Cell, RefCell},
@@ -1226,6 +1218,11 @@ unsafe impl Sync for InputOptions {}
 
 cfg_if! {
     if #[cfg(feature = "nvtt_image_integration")] {
+        use image::{Bgra, DynamicImage, ImageBuffer, Luma, Rgba};
+        use maybe_owned::MaybeOwned;
+        use safe_transmute::transmute_to_bytes;
+        use std::ops::Deref;
+
         /// An enumeration of the valid image buffer types which can be
         /// used with nvtt.
         ///
