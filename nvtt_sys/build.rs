@@ -66,7 +66,6 @@ cfg_if! {
 
             println!("cargo:rustc-link-search={}", src_dir.join("bc7").display());
             println!("cargo:rustc-link-search={}", src_dir.join("bc6h").display());
-            println!("cargo:rustc-link-search={}", src_dir.join("nvtt").join("squish").display());
             println!("cargo:rustc-link-search={}", extern_dir.join("rg_etc1_v104").display());
 
             let libs = &[
