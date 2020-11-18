@@ -50,13 +50,19 @@
 //! ## `nvtt_image_integration`
 //!
 //! This feature provides the convenience method [`InputOptions::set_image`], which
-//! can be used to configure the `InputOptions` directly from types provided by the
+//! can be used to configure the [`InputOptions`] directly from types provided by the
 //! [`image`] crate.
 //!
 //! Only a limited number of image formats are supported, although this library can
 //! provide automatic conversions from a [`DynamicImage`]. See the [`ValidImage`]
 //! type for more information.
 //!
+//! # `serde-serialize`
+//!
+//! This feature provides [`serde`] impls for simple `enum` and `struct` types. It is not
+//! possible to serialize a [`Compressor`], [`CompressionOptions`], [`InputOptions`] or
+//! [`OutputOptions`].
+//! 
 //! # Dependencies
 //!
 //! ## Linux/macOS
@@ -74,13 +80,20 @@
 //!
 //! [wiki]: https://github.com/castano/nvidia-texture-tools/wiki/ApiDocumentation
 //! [`InputOptions::set_image`]: struct.InputOptions.html#method.set_image
+//! [`InputOptions`]: struct.InputOptions.html
 //! [`image`]: https://docs.rs/image/latest/image
 //! [`DynamicImage`]: https://docs.rs/image/latest/image/enum.DynamicImage.html
 //! [`ValidImage`]: enum.ValidImage.html
+//! [`serde`]: https://serde.rs
+//! [`Compressor`]: struct.InputOptions.html
+//! [`CompressionOptions`]: struct.InputOptions.html
+//! [`OutputOptions`]: struct.InputOptions.html
 
 use cfg_if::cfg_if;
 use log::{error, trace};
 use nvtt_sys::*;
+#[cfg(feature = "serde-serialize")]
+use serde::{Serialize, Deserialize};
 use std::{
     any::type_name,
     cell::{Cell, RefCell},
@@ -175,6 +188,7 @@ macro_rules! decl_enum {
 
 decl_enum! {
     /// The container format used to store the texture data.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Container: NvttContainer {
         /// Dds container. This is used to contain data compressed
@@ -206,6 +220,7 @@ decl_enum! {
     /// You can view [`wikipedia`] for more information about alpha blending.
     ///
     /// [`wikipedia`]: https://en.wikipedia.org/wiki/Alpha_compositing
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum AlphaMode: NvttAlphaMode {
         /// The image does not contain any alpha information.
@@ -220,6 +235,7 @@ decl_enum! {
 
 /// Parameters used to customise the kaiser filter used
 /// for mipmapping.
+#[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct KaiserParameters {
     pub width: f32,
@@ -228,6 +244,7 @@ pub struct KaiserParameters {
 }
 
 /// Specify which type of filter used to calculate mipmaps.
+#[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MipmapFilter {
     /// Use a box filter. This is the default.
@@ -273,6 +290,7 @@ impl Default for MipmapFilter {
 
 decl_enum! {
     /// Specify the quality level of the compression output.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Quality: NvttQuality {
         /// Produces the lowest quality level, but at the fastest speed.
@@ -302,6 +320,7 @@ decl_enum! {
     /// You can see the [`Microsoft Documentation`] for more information about the `Bc` formats.
     ///
     /// [`Microsoft Documentation`]: https://docs.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum Format: NvttFormat {
         /// Use the `bc1` compression algorithm. This supports images with 3 rgb channels.
@@ -355,6 +374,7 @@ decl_enum! {
 
 decl_enum! {
     /// Specify the color format of the input image.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum InputFormat: NvttInputFormat {
         /// 4 unsigned byte channels comprised of `blue`, `green`, `red` and `alpha`.
@@ -370,6 +390,7 @@ decl_enum! {
 
 decl_enum! {
     /// Controls how the image edge length is rounded when the image is compressed.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum RoundMode: NvttRoundMode {
         /// The image size is not changed.
@@ -398,6 +419,7 @@ impl Default for RoundMode {
 
 decl_enum! {
     /// The type of the texture.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum TextureType: NvttTextureType {
         /// The texture is a standard 2D image with a width and
@@ -422,6 +444,7 @@ impl Default for TextureType {
 
 decl_enum! {
     /// Specify how the image should wrap if image boundaries are modified.
+    #[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub enum WrapMode: NvttWrapMode {
         /// Clamp the image edge to a single color.
@@ -433,6 +456,7 @@ decl_enum! {
     }
 }
 
+#[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct NormalMapFilter {
     pub small: f32,
@@ -455,6 +479,7 @@ impl NormalMapFilter {
 }
 
 /// Describes the layout of the input texture data.
+#[cfg_attr(feature = "serde-serialize", derive(Deserialize, Serialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum TextureLayout {
     /// The texture is a standard 2D image with a width and

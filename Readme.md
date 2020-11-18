@@ -25,12 +25,18 @@ compressor.compress(&compression_opts, &input_options, &output_options)?;
 ### `nvtt_image_integration`
 
 This feature provides the convenience method [`InputOptions::set_image`], which
-can be used to configure the `InputOptions` directly from types provided by the
+can be used to configure the [`InputOptions`] directly from types provided by the
 [`image`] crate.
 
 Only a limited number of image formats are supported, although this library can
 provide automatic conversions from a [`DynamicImage`]. See the [`ValidImage`]
 type for more information.
+
+### `serde-serialize`
+
+This feature provides [`serde`] impls for simple `enum` and `struct` types. It is not
+possible to serialize a [`Compressor`], [`CompressionOptions`], [`InputOptions`] or
+[`OutputOptions`].
 
 ## Dependencies
 
@@ -47,9 +53,13 @@ This crate requires a valid installation of Visual Studio.
 This crate does not currently work on Microsoft Windows due to incomplete work
 on the build system.
 
-
 [wiki]: https://github.com/castano/nvidia-texture-tools/wiki/ApiDocumentation
-[`InputOptions::set_image`]: struct.InputOptions.html#method.set_image
+[`InputOptions::set_image`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/struct.InputOptions.html#method.set_image
+[`InputOptions`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/struct.InputOptions.html
 [`image`]: https://docs.rs/image/latest/image
 [`DynamicImage`]: https://docs.rs/image/latest/image/enum.DynamicImage.html
-[`ValidImage`]: enum.ValidImage.html
+[`ValidImage`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/enum.ValidImage.html
+[`serde`]: https://serde.rs
+[`Compressor`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/struct.Compressor.html
+[`CompressionOptions`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/struct.CompressionOptions.html
+[`OutputOptions`]: http://docs.rs/nvtt_rs/latest/nvtt_rs/struct.OutputOptions.html

@@ -35,8 +35,14 @@ optional = true
 version = "0.11.0"
 optional = true
 
+[dependencies.serde]
+version = "1"
+features = ["derive"]
+optional = true
+
 [dependencies.nvtt_sys]
 version = "0.4"
 
 [features]
 nvtt_image_integration = ["image", "maybe-owned", "safe-transmute"]
+serde-serialize = ["serde"]
