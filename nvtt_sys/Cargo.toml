@@ -24,7 +24,7 @@ version = "0.2"
 default-features = false
 
 [build-dependencies]
-cfg-if = "0.1.10"
+cfg-if = "1"
 
 [build-dependencies.bindgen]
 version = "0.54.0"
