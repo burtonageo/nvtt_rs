@@ -139,7 +139,7 @@ macro_rules! decl_enum {
         }
 
         impl TryFrom<$raw> for $enum_name {
-            type Error = EnumConvertError;
+            type Error = EnumConvertError<$raw>;
 
             // NvttFormat contains overlapping enum instances, so only the first
             // value declared will be returned.
@@ -150,7 +150,7 @@ macro_rules! decl_enum {
                     $(
                         $sys_nm => { Ok($enum_name::$rust_nm) }
                     )*
-                    _ => Err(EnumConvertError::new::<$enum_name>(raw))
+                    _ => Err(EnumConvertError::<$raw>::new::<$enum_name>(raw))
                 }
             }
         }
@@ -1612,15 +1612,15 @@ impl From<NulError> for PathConvertError {
 ///
 /// [`TryFrom`]: https://doc.rust-lang.org/stable/std/convert/trait.TryFrom.html
 #[derive(Debug)]
-pub struct EnumConvertError {
-    value: u32,
+pub struct EnumConvertError<RawValue> {
+    value: RawValue,
     enum_name: &'static str,
 }
 
-impl EnumConvertError {
+impl<RawValue> EnumConvertError<RawValue> {
     /// Create a new `EnumConvertError`.
     #[inline]
-    fn new<T>(value: u32) -> Self {
+    fn new<T>(value: RawValue) -> Self {
         Self {
             value,
             enum_name: type_name::<T>(),
@@ -1629,12 +1629,12 @@ impl EnumConvertError {
 
     /// Returns the erroneous numeric value.
     #[inline]
-    pub const fn value(&self) -> u32 {
-        self.value
+    pub const fn value(&self) -> &RawValue {
+        &self.value
     }
 }
 
-impl fmt::Display for EnumConvertError {
+impl<RawValue: fmt::Display> fmt::Display for EnumConvertError<RawValue> {
     #[inline]
     fn fmt(&self, fmtr: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -1646,4 +1646,4 @@ impl fmt::Display for EnumConvertError {
     }
 }
 
-impl ErrorTrait for EnumConvertError {}
+impl<RawValue> ErrorTrait for EnumConvertError<RawValue> where RawValue: fmt::Debug + fmt::Display {}
