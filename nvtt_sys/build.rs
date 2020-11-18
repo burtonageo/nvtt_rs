@@ -79,7 +79,6 @@ cfg_if! {
                 // @TODO(burtonageo): Is this necessary???
                 "bc7",
                 "bc6h",
-                "squish",
                 "rg_etc1",
             ];
 
